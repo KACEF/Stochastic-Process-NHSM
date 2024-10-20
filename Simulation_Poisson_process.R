@@ -101,8 +101,8 @@ plot_paths(X,t0,T)
 lines(t, colMeans(X), col = 'red', lwd = 3, lty = 3)
 
 # Theoretical mean function
-m <- function(t) { lambda * t }
-curve(m, from = 0, to = T, lwd = 2, add = TRUE)
+mt <- function(t) { lambda * t }
+curve(mt, from = 0, to = T, lwd = 2, add = TRUE)
 
 # Add legend
 legend(x = 0, y = 20, legend = c("Empirical Mean", "Theoretical Mean"), 
