@@ -1,0 +1,109 @@
+###################################################################
+# Simulation of Homogeneous Poisson Processes in R
+#                      Dr. KACEF, MA.
+# October 2024
+# The National Higher School of Mathematics (NHSM)
+# Course: Stochastic Processes 2
+# Specialty: Statistics and Econometrics for Actuarial Sciences
+##################################################################
+
+# Step 1. Simulation of a Homogeneous Poisson Process (HPP) 
+
+# Parameters
+lambda <- 3   # Rate of the Poisson process
+n <- 10       # Number of events to simulate
+
+# Generate inter-arrival times
+inter_arrival_times <- rexp(n, rate = lambda)
+
+
+#############################################################
+# Step 2. Event Times (or Arrival Times)
+
+# Compute arrival times as the cumulative sum of inter-arrival times
+Tn <- cumsum(inter_arrival_times)
+Tn <- c(0, Tn)  # Add T0 = 0
+
+# Plot a sample path of the Poisson process
+plot(Tn, 0:n, type = "s", xlab = "Time", ylab = expression(N[t]), 
+     main = "Sample Path of the HPP", col = "#2297E6", lwd = 2, 
+     cex.lab = 1.2, cex.axis = 1.2, cex.main = 1.4)
+
+#############################################################
+# Step 3. Simulation of N Paths of the HPP
+# m is the number of points used to construct a one path of N
+# Function to simulate a homogeneous Poisson process
+hpp <- function(m, lambda, T) {
+  Tn <- vector()
+  tau <- vector()
+  N <- vector()
+  Tn[1] <- 0
+  i <- 1
+  while (Tn[i] <= T) {
+    tau[i] <- rexp(1, rate = lambda)
+    Tn[i + 1] <- Tn[i] + tau[i]
+    i <- i + 1
+  }
+  t <- seq(from = 0, to = T, length.out = m)
+  N <- sapply(t, function(t) { max(which(Tn <= t)) - 1 })
+  return(N)
+}
+###############################################################
+# Simulate one path of the HPP
+m <- 100
+T <- 3
+lambda <- 4
+
+t <- seq(from = 0, to = T, length.out = m)
+N <- hpp(m, lambda, T)
+
+plot(t, N, type = "s", xlab = "Time", ylab = expression(N[t]), 
+     main = "Sample Path of the HPP", col = "#2297E6", lwd = 2, 
+     cex.lab = 1.2, cex.axis = 1.2, cex.main = 1.4)
+
+#############################################################
+# Step 4. Plot Multiple Paths of the HPP
+# Function to plot multiple paths of a Poisson process
+# ###########################################################
+plot_paths <- function(X,t0,T) {
+  if (t0 >= T) {
+    stop("t0 must be less than T.")
+  }
+  
+  t <- seq(from = t0, to = T, length.out = length(X[1,]))
+  plot(NA, type = "s", xlim = c(0, T), ylim = c(min(X), max(X)), 
+       ylab = expression(N[t]), xlab = "Time", cex.lab = 1.2, cex.axis = 1.2)
+  
+  title(main = list("Simulation of paths of HPP", cex = 1.2, col = "black", font = 1))
+  
+  for (i in 1:length(X[,1])) {
+    lines(t, X[i, ], col = "#2297E6", lwd = 2, type = 's')
+  }
+}
+
+###############################################################
+#                Simulate N paths of the HPP
+# #############################################################
+
+N_paths <- 50  # Number of paths
+m <- 10^3      # Number of points used to construct a one path of N
+t0<-0
+T <- 5
+lambda <- 3
+t <- seq(from = t0, to = T, length.out = m)
+X <- replicate(N_paths, hpp(m, lambda, T))
+X<-t(X)
+plot_paths(X,t0,T)
+
+# Step 5. Plot Empirical and Theoretical Mean Function
+
+# Add empirical mean function
+lines(t, colMeans(X), col = 'red', lwd = 3, lty = 3)
+
+# Theoretical mean function
+m <- function(t) { lambda * t }
+curve(m, from = 0, to = T, lwd = 2, add = TRUE)
+
+# Add legend
+legend(x = 0, y = 20, legend = c("Empirical Mean", "Theoretical Mean"), 
+       col = c("red", "black"), cex = 0.9, lty = c(3, 1), bty = "n", lwd = c(3, 2))
